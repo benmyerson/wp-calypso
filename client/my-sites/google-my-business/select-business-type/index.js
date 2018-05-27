@@ -47,7 +47,7 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 		page.back( `/stats/day/${ this.props.siteSlug }` );
 	};
 
-	handleConnect = keyringConnection => {
+	handleConnect = ( keyringConnection, isNew ) => {
 		const { googleMyBusinessLocations, siteId, siteSlug } = this.props;
 
 		const locationCount = googleMyBusinessLocations.length;
@@ -60,7 +60,9 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 			verified_location_count: verifiedLocationCount,
 		} );
 
-		this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID ).then( () => {
+		Promise.resolve(
+			isNew ? this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID ) : true
+		).then( () => {
 			if ( locationCount === 0 ) {
 				page.redirect( `/google-my-business/new/${ siteSlug }` );
 			} else {

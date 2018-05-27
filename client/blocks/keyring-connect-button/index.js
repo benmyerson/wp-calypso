@@ -94,7 +94,7 @@ class KeyringConnectButton extends Component {
 		// Depending on current status, perform an action when user clicks the
 		// service action button
 		if ( 'connected' === connectionStatus && ! forceReconnect ) {
-			this.props.onConnect( last( keyringConnections ) );
+			this.props.onConnect( last( keyringConnections ), false );
 		} else {
 			this.addConnection();
 		}
@@ -145,7 +145,7 @@ class KeyringConnectButton extends Component {
 				nextProps.keyringConnections,
 				'ID'
 			);
-			this.props.onConnect( newKeyringConnection );
+			this.props.onConnect( newKeyringConnection, true );
 		}
 	}
 
