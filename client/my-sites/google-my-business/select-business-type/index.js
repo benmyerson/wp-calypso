@@ -31,7 +31,10 @@ import { recordTracksEvent } from 'state/analytics/actions';
 import QuerySiteKeyrings from 'components/data/query-site-keyrings';
 import QueryKeyringConnections from 'components/data/query-keyring-connections';
 import { isJetpackSite } from 'state/sites/selectors';
-import { connectGoogleMyBusinessAccount } from 'state/google-my-business/actions';
+import {
+	connectGoogleMyBusinessAccount,
+	disconnectAllGoogleMyBusinessAccounts,
+} from 'state/google-my-business/actions';
 import getSiteKeyringConnection from 'state/selectors/get-site-keyring-connection';
 
 class GoogleMyBusinessSelectBusinessType extends Component {
@@ -61,9 +64,16 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 			verified_location_count: verifiedLocationCount,
 		} );
 
+		const disconnectAndReconnect = () =>
+			this.props
+				.disconnectAllGoogleMyBusinessAccounts( siteId )
+				.then( () => this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID ) );
+
 		Promise.resolve(
+			// If user does not have an existing site keyring connection for the account he just connected to,
+			// disconnect from existing accounts and create a new site keyring connection for the new one
 			! this.props.hasSiteKeyringConnection( keyringConnection.ID )
-				? this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID )
+				? disconnectAndReconnect()
 				: true
 		).then( () => {
 			if ( locationCount === 0 ) {
@@ -253,6 +263,7 @@ export default connect(
 	},
 	{
 		connectGoogleMyBusinessAccount,
+		disconnectAllGoogleMyBusinessAccounts,
 		recordTracksEvent,
 	}
 )( localize( GoogleMyBusinessSelectBusinessType ) );

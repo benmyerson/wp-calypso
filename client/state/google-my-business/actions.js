@@ -13,6 +13,7 @@ import {
 	updateSiteKeyring,
 	deleteSiteKeyring,
 } from 'state/site-keyrings/actions';
+import { getSiteKeyringsForService } from 'state/site-keyrings/selectors';
 
 export const connectGoogleMyBusinessAccount = (
 	siteId,
@@ -29,6 +30,13 @@ export const connectGoogleMyBusinessAccount = (
 
 export const disconnectGoogleMyBusinessAccount = ( siteId, keyringId ) => dispatch =>
 	dispatch( deleteSiteKeyring( siteId, keyringId ) );
+
+export const disconnectAllGoogleMyBusinessAccounts = siteId => ( dispatch, getState ) =>
+	Promise.all(
+		getSiteKeyringsForService( getState(), siteId, 'google_my_business' ).map( siteKeyring =>
+			disconnectGoogleMyBusinessAccount( siteKeyring.keyring_id )
+		)
+	);
 
 export const connectGoogleMyBusinessLocation = ( siteId, keyringId, locationId ) => dispatch =>
 	dispatch( updateSiteKeyring( siteId, keyringId, locationId ) );
