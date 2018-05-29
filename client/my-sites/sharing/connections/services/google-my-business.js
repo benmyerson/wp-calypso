@@ -36,9 +36,12 @@ export class GoogleMyBusiness extends SharingService {
 		...SharingService.defaultProps,
 		deleteStoredKeyringConnection: () => {},
 	};
+	s;
+	externalAccessProvided = keyringConnectionId =>
+		this.createOrUpdateConnection( keyringConnectionId );
 
 	// override `createOrUpdateConnection` to ignore connection update, this is only useful for publicize services
-	createOrUpdateConnection = ( keyringConnectionId, externalUserId ) => {
+	createOrUpdateConnection = ( keyringConnectionId, externalUserId = null ) => {
 		this.props
 			.connectGoogleMyBusinessAccount( this.props.siteId, keyringConnectionId, externalUserId )
 			.catch( () => {
@@ -49,7 +52,9 @@ export class GoogleMyBusiness extends SharingService {
 				} );
 			} )
 			.finally( () => {
-				this.setState( { isConnecting: false } );
+				if ( externalUserId ) {
+					this.setState( { isConnecting: false } );
+				}
 			} );
 	};
 

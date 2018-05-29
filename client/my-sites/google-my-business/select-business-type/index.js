@@ -35,7 +35,7 @@ import {
 	connectGoogleMyBusinessAccount,
 	disconnectAllGoogleMyBusinessAccounts,
 } from 'state/google-my-business/actions';
-import getSiteKeyringConnection from 'state/selectors/get-site-keyring-connection';
+import { getSiteKeyringConnection } from 'state/site-keyrings/selectors';
 
 class GoogleMyBusinessSelectBusinessType extends Component {
 	static propTypes = {
