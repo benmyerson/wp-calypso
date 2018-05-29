@@ -81,7 +81,7 @@ const items = createReducer(
 		} ),
 		[ SITE_KEYRINGS_SAVE_SUCCESS ]: ( state, { siteId, keyring } ) => ( {
 			...state,
-			[ siteId ]: state[ siteId ].concat( [ keyring ] ),
+			[ siteId ]: ( state[ siteId ] || [] ).concat( [ keyring ] ),
 		} ),
 		[ SITE_KEYRINGS_UPDATE_SUCCESS ]: ( state, { siteId, keyringId, externalUserId } ) => ( {
 			...state,
@@ -95,7 +95,7 @@ const items = createReducer(
 		[ SITE_KEYRINGS_DELETE_SUCCESS ]: ( state, { siteId, keyringId, externalUserId } ) => ( {
 			...state,
 			[ siteId ]: remove(
-				state,
+				state[ siteId ] || [],
 				keyring => keyring.keyring_id === keyringId && keyring.external_user_id === externalUserId
 			),
 		} ),

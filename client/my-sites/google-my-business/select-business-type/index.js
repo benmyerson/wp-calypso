@@ -9,7 +9,7 @@ import page from 'page';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import Gridicon from 'gridicons';
-import { get } from 'lodash';
+import { get, memoize } from 'lodash';
 
 /**
  * Internal dependencies
@@ -32,6 +32,7 @@ import QuerySiteKeyrings from 'components/data/query-site-keyrings';
 import QueryKeyringConnections from 'components/data/query-keyring-connections';
 import { isJetpackSite } from 'state/sites/selectors';
 import { connectGoogleMyBusinessAccount } from 'state/google-my-business/actions';
+import getSiteKeyringConnection from 'state/selectors/get-site-keyring-connection';
 
 class GoogleMyBusinessSelectBusinessType extends Component {
 	static propTypes = {
@@ -47,7 +48,7 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 		page.back( `/stats/day/${ this.props.siteSlug }` );
 	};
 
-	handleConnect = ( keyringConnection, isNew ) => {
+	handleConnect = keyringConnection => {
 		const { googleMyBusinessLocations, siteId, siteSlug } = this.props;
 
 		const locationCount = googleMyBusinessLocations.length;
@@ -61,7 +62,9 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 		} );
 
 		Promise.resolve(
-			isNew ? this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID ) : true
+			! this.props.hasSiteKeyringConnection( keyringConnection.ID )
+				? this.props.connectGoogleMyBusinessAccount( siteId, keyringConnection.ID )
+				: true
 		).then( () => {
 			if ( locationCount === 0 ) {
 				page.redirect( `/google-my-business/new/${ siteSlug }` );
@@ -106,6 +109,7 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 					serviceId="google_my_business"
 					onClick={ this.trackConnectToGoogleMyBusinessClick }
 					onConnect={ this.handleConnect }
+					forceReconnect
 					primary
 				>
 					{ translate( 'Connect to Google My Business', {
@@ -229,12 +233,18 @@ class GoogleMyBusinessSelectBusinessType extends Component {
 	}
 }
 
+const hasSiteKeyringConnection = memoize(
+	( state, siteId ) => keyringId => !! getSiteKeyringConnection( state, siteId, keyringId ),
+	( state, siteId ) => siteId
+);
+
 export default connect(
 	state => {
 		const siteId = getSelectedSiteId( state );
 
 		return {
 			googleMyBusinessLocations: getGoogleMyBusinessLocations( state, siteId ),
+			hasSiteKeyringConnection: hasSiteKeyringConnection( state, siteId ),
 			canUserManageOptions: canCurrentUser( state, siteId, 'manage_options' ),
 			siteId,
 			siteIsJetpack: isJetpackSite( state, siteId ),

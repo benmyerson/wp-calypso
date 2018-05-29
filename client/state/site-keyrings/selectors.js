@@ -47,7 +47,7 @@ export function getSiteKeyringsSaveRequestStatus( state, siteId ) {
  * @return {Object}  Site keyrings indexed by keyring ids
  */
 export function getSiteKeyrings( state, siteId ) {
-	return get( state.siteKeyrings.items, [ siteId ], null );
+	return get( state.siteKeyrings.items, [ siteId ], [] );
 }
 
 /**
