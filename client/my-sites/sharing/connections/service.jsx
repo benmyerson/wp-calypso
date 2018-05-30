@@ -141,11 +141,11 @@ export class SharingService extends Component {
 					// (or otherwise closed the window), force a refresh
 					this.props.requestKeyringConnections();
 
-					this.externalAccessProvided( newKeyringId );
-
 					// In the case that a Keyring connection doesn't exist, wait for app
 					// authorization to occur, then display with the available connections
 					this.setState( { isAwaitingConnections: true } );
+
+					this.externalAccessProvided( newKeyringId );
 				} );
 			}
 		} else {
