@@ -14,12 +14,13 @@ import { deleteStoredKeyringConnection } from 'state/sharing/keyring/actions';
 import GoogleMyBusinessLogo from 'my-sites/google-my-business/logo';
 import { SharingService, connectFor } from 'my-sites/sharing/connections/service';
 import { requestSiteKeyrings } from 'state/site-keyrings/actions';
-import { getSiteKeyringsForService, isRequestingSiteKeyrings } from 'state/site-keyrings/selectors';
+import { isRequestingSiteKeyrings } from 'state/site-keyrings/selectors';
 import getGoogleMyBusinessLocations from 'state/selectors/get-google-my-business-locations';
 import getSiteUserConnectionsForGoogleMyBusiness from 'state/selectors/get-site-user-connections-for-google-my-business';
 import {
 	connectGoogleMyBusinessAccount,
-	disconnectGoogleMyBusinessAccount,
+	connectGoogleMyBusinessLocation,
+	disconnectAllGoogleMyBusinessAccounts,
 } from 'state/google-my-business/actions';
 
 export class GoogleMyBusiness extends SharingService {
@@ -36,14 +37,15 @@ export class GoogleMyBusiness extends SharingService {
 		...SharingService.defaultProps,
 		deleteStoredKeyringConnection: () => {},
 	};
-	s;
-	externalAccessProvided = keyringConnectionId =>
-		this.createOrUpdateConnection( keyringConnectionId );
+
+	externalAccessProvided = keyringConnectionId => {
+		this.props.connectGoogleMyBusinessAccount( this.props.siteId, keyringConnectionId );
+	};
 
 	// override `createOrUpdateConnection` to ignore connection update, this is only useful for publicize services
-	createOrUpdateConnection = ( keyringConnectionId, externalUserId = null ) => {
+	createOrUpdateConnection = ( keyringConnectionId, externalUserId ) => {
 		this.props
-			.connectGoogleMyBusinessAccount( this.props.siteId, keyringConnectionId, externalUserId )
+			.connectGoogleMyBusinessLocation( this.props.siteId, keyringConnectionId, externalUserId )
 			.catch( () => {
 				this.props.failCreateConnection( {
 					message: this.props.translate( 'Error while linking your site to %(service)s.', {
@@ -52,23 +54,16 @@ export class GoogleMyBusiness extends SharingService {
 				} );
 			} )
 			.finally( () => {
-				if ( externalUserId ) {
-					this.setState( { isConnecting: false } );
-				}
+				this.setState( { isConnecting: false } );
 			} );
 	};
 
 	// override `removeConnection` to remove the keyring connection instead of the publicize one
 	removeConnection = () => {
 		this.setState( { isDisconnecting: true } );
-		this.props
-			.disconnectGoogleMyBusinessAccount(
-				this.props.siteId,
-				this.props.siteKeyrings[ 0 ].keyring_id
-			)
-			.finally( () => {
-				this.setState( { isDisconnecting: false } );
-			} );
+		this.props.disconnectAllGoogleMyBusinessAccounts( this.props.siteId ).finally( () => {
+			this.setState( { isDisconnecting: false } );
+		} );
 	};
 
 	componentWillMount() {
@@ -135,7 +130,6 @@ export default connectFor(
 	( state, props ) => ( {
 		...props,
 		availableExternalAccounts: getGoogleMyBusinessLocations( state, props.siteId ),
-		siteKeyrings: getSiteKeyringsForService( state, props.siteId, 'google_my_business' ),
 		requestingSiteKeyrings: isRequestingSiteKeyrings( state, props.siteId ),
 		saveRequests: state.siteSettings.saveRequests,
 		removableConnections: props.keyringConnections,
@@ -144,7 +138,8 @@ export default connectFor(
 	} ),
 	{
 		connectGoogleMyBusinessAccount,
-		disconnectGoogleMyBusinessAccount,
+		connectGoogleMyBusinessLocation,
+		disconnectAllGoogleMyBusinessAccounts,
 		deleteStoredKeyringConnection,
 		requestSiteKeyrings,
 	}

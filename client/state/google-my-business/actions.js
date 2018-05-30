@@ -34,7 +34,7 @@ export const disconnectGoogleMyBusinessAccount = ( siteId, keyringId ) => dispat
 export const disconnectAllGoogleMyBusinessAccounts = siteId => ( dispatch, getState ) =>
 	Promise.all(
 		getSiteKeyringsForService( getState(), siteId, 'google_my_business' ).map( siteKeyring =>
-			disconnectGoogleMyBusinessAccount( siteKeyring.keyring_id )
+			dispatch( disconnectGoogleMyBusinessAccount( siteId, siteKeyring.keyring_id ) )
 		)
 	);
 
